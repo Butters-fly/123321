@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小学生古诗背诵站</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6B4226',
+                        paper: '#fffbf0',
+                    },
+                    fontFamily: {
+                        song: ['KaiTi', 'STKaiti', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 1px 1px 3px rgba(0,0,0,0.15);
+            }
+            .card-shadow {
+                box-shadow: 0 4px 16px rgba(107, 66, 38, 0.12);
+            }
+        }
+        body {
+            background-image: linear-gradient(rgba(255,251,240,0.92), rgba(255,251,240,0.96)), url("https://img0.baidu.com/it/u=3047240243,3206030120&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500");
+            background-size: cover;
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+<body class="bg-paper min-h-screen pb-16">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- 头部标题 -->
+        <header class="py-10 text-center">
+            <h1 class="text-[clamp(2rem,5vw,3rem)] font-song text-primary text-shadow font-bold">
+                <i class="fa fa-book mr-2"></i>小学生古诗背诵
+            </h1>
+            <p class="text-amber-800 mt-2 text-lg">检索古诗 · 注释译文 · 轻松背诵</p>
+        </header>
+
+        <!-- 搜索框 -->
+        <div class="bg-white rounded-xl p-4 card-shadow mb-8">
+            <div class="flex gap-2">
+                <input id="searchInput" type="text" placeholder="输入古诗标题/作者/诗句搜索..."
+                    class="flex-1 border border-amber-200 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition">
+                <button onclick="searchPoem()" class="bg-primary hover:bg-primary/90 text-white px-5 py-3 rounded-lg transition">
+                    <i class="fa fa-search"></i> 搜索
+                </button>
+            </div>
+        </div>
+
+        <!-- 古诗列表容器 -->
+        <div id="poemList" class="grid gap-6">
+            <!-- js渲染卡片 -->
+        </div>
+    </div>
+
+    <script>
+        // 古诗库，在这里可以不断新增古诗
+        const poems = [
+            {
+                title: "咏鹅",
+                author: "骆宾王",
+                dynasty: "唐",
+                content: "鹅，鹅，鹅，\n曲项向天歌。\n白毛浮绿水，\n红掌拨清波。",
+                note: "① 曲项：弯着脖子。项，脖子。\n② 拨：划动。",
+                translate: "大白鹅呀大白鹅，弯着脖子向着天空放声高歌。洁白的羽毛漂浮在碧绿水面，红红的脚掌拨动着清清的水波。"
+            },
+            {
+                title: "春晓",
+                author: "孟浩然",
+                dynasty: "唐",
+                content: "春眠不觉晓，\n处处闻啼鸟。\n夜来风雨声，\n花落知多少。",
+                note: "① 晓：天亮，清晨。\n② 闻：听见。\n③ 啼鸟：鸟的鸣叫。",
+                translate: "春日里贪睡不知不觉天就亮了，到处都能听见小鸟叽叽喳喳的叫声。回想昨夜阵阵风雨声，不知道又有多少花儿被吹落了。"
+            },
+            {
+                title: "静夜思",
+                author: "李白",
+                dynasty: "唐",
+                content: "床前明月光，\n疑是地上霜。\n举头望明月，\n低头思故乡。",
+                note: "① 疑：好像，以为。\n② 举头：抬头。",
+                translate: "明亮的月光洒在床前，好像地上铺了一层白霜。我抬起头，看向天上圆圆的明月，不由得低下头思念远方的家乡。"
+            },
+            {
+                title: "登鹳雀楼",
+                author: "王之涣",
+                dynasty: "唐",
+                content: "白日依山尽，\n黄河入海流。\n欲穷千里目，\n更上一层楼。",
+                note: "① 白日：太阳。\n② 尽：消失，落下。\n③ 穷：尽，看到尽头。",
+                translate: "夕阳靠着西山慢慢落下，滔滔黄河向着大海奔流而去。想要看到更远的风景，就要再登上更高的一层城楼。"
+            },
+            {
+                title: "望庐山瀑布",
+                author: "李白",
+                dynasty: "唐",
+                content: "日照香炉生紫烟，\n遥看瀑布挂前川。\n飞流直下三千尺，\n疑是银河落九天。",
+                note: "① 香炉：香炉峰，庐山山峰名。\n② 紫烟：阳光照射水雾形成紫色云雾。\n③ 九天：传说天有九层，指极高的天空。",
+                translate: "太阳照在香炉峰上，升腾起紫色的云烟。远远望去，瀑布像一条白布挂在山前。飞快的水流从高高的山顶直冲而下，让人怀疑是银河从天上落了下来。"
+            }
+        ];
+
+        let showAll = true;
+
+        // 渲染古诗卡片
+        function render(list) {
+            const wrap = document.getElementById("poemList");
+            wrap.innerHTML = "";
+            if(list.length === 0) {
+                wrap.innerHTML = `<div class="text-center py-16 text-amber-700 text-xl"><i class="fa fa-frown-o mr-2"></i>没有找到对应的古诗</div>`;
+                return;
+            }
+            list.forEach((poem, idx)=>{
+                const card = document.createElement("div");
+                card.className = "bg-white rounded-xl p-6 card-shadow";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h2 class="text-2xl font-song text-primary font-bold">${poem.title}</h2>
+                            <p class="text-amber-700">【${poem.dynasty}】${poem.author}</p>
+                        </div>
+                    </div>
+                    <div class="my-4 text-xl font-song leading-loose whitespace-pre-line text-gray-800">
+                        ${poem.content}
+                    </div>
+                    <div class="flex flex-wrap gap-3 mt-4">
+                        <button onclick="toggleBlock('note${idx}')" class="px-4 py-2 bg-amber-100 text-amber-800 rounded-lg hover:bg-amber-200 transition">
+                            <i class="fa fa-list-ul"></i> 注释
+                        </button>
+                        <button onclick="toggleBlock('trans${idx}')" class="px-4 py-2 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition">
+                            <i class="fa fa-file-text-o"></i> 译文
+                        </button>
+                    </div>
+                    <div id="note${idx}" class="hidden mt-4 p-4 bg-amber-50 rounded-lg text-gray-700 whitespace-pre-line">
+                        <b>📖 注释：</b>
+                        <br>${poem.note}
+                    </div>
+                    <div id="trans${idx}" class="hidden mt-4 p-4 bg-green-50 rounded-lg text-gray-700 whitespace-pre-line">
+                        <b>📝 译文：</b>
+                        <br>${poem.translate}
+                    </div>
+                `;
+                wrap.appendChild(card);
+            })
+        }
+
+        // 折叠展开
+        function toggleBlock(id){
+            const dom = document.getElementById(id);
+            dom.classList.toggle("hidden");
+        }
+
+        // 搜索
+        function searchPoem(){
+            const kw = document.getElementById("searchInput").value.trim().toLowerCase();
+            if(!kw){
+                render(poems);
+                return;
+            }
+            const res = poems.filter(p=>{
+                return p.title.includes(kw) || p.author.includes(kw) || p.content.includes(kw)
+            })
+            render(res);
+        }
+
+        // 回车搜索
+        document.getElementById("searchInput").addEventListener("keydown", function(e){
+            if(e.key === "Enter") searchPoem();
+        })
+
+        // 默认加载全部
+        render(poems);
+    </script>
+</body>
+</html>
